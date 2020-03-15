@@ -3,13 +3,14 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from scipy.integrate import quad, simps
 from calculation_methods import *
+from curve import Curve
 
 with open("test_set.txt") as f:
     lines = [line.strip().split() for line in f.readlines()]
     r = np.array([float(line[0]) for line in lines])
     omega = np.array([float(line[1]) for line in lines])
-    w0, b = interpolation_coefficients(r, omega)
-    print(w0)
+    curve = Curve(r, omega, 1e-36)
+    print(curve.omega0)
     a = np.arange(8e-7, 8e-5, 8e-7)
     sigma_real = np.zeros(len(a))
     sigma_imag = np.zeros(len(a))

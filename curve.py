@@ -1,6 +1,6 @@
 from calculation_methods import *
 class Curve:
-    def __init__(self):
+    def __init__(self, grid, frequency, squared_dipole_moment):
         """Create a new state object"""
         self.frequency = frequency
         self.grid = grid
@@ -9,7 +9,7 @@ class Curve:
         self.intensity = einstein_coefficient(self.squared_dipole_moment, self.omega0)
     
     def interpolate(self):
-        self.omega0, self.coefficients = interpolation_coefficients(grid, frequency)
+        self.omega0, self.coefficients = interpolation_coefficients(self.grid, self.frequency)
 
     def sigma_broad_calc(self):
         pass
