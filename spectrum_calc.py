@@ -2,27 +2,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from scipy.integrate import quad, simps
-from frequency_calc import potential
-
-
-def interpolation_coefficients(x, w):
-    p, cov = curve_fit(potential, x, w,
-                       p0=[w[-1], 3E-9, -4E-31, 1E-53, -3E-76, 1E-99, -2E-123], gtol=1e-18)
-    return p[0], p[1:]
-
-
-def j(n, z, s):
-    if n == 1:
-        return z / np.sqrt(s ** 2 + z ** 2)
-    elif n == 2:
-        return (np.arctan2(s, z) / 2) + s * z / (2 * (s ** 2 + z ** 2))
-    else:
-        return s * z ** (n - 1) / (n * (s ** 2 + z ** 2) ** (n / 2)) + (n - 1) * j(n - 2, z, s) / n
-
-
-def eta(x, s, v, c):
-    return 2 * sum([j(3 * i + 1, x, s) * c[i] * (x ** (-3 * i - 2)) for i in range(len(c))]) / v
-
+from calculation_methods import *
 
 with open("test_set.txt") as f:
     lines = [line.strip().split() for line in f.readlines()]

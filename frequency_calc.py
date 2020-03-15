@@ -34,11 +34,6 @@ def compound_states(statei, statef):
             return statef + "_" + statei
 
 
-def potential(r, w0, c1, c2, c3, c4, c5, c6):
-    c = [c1, c2, c3, c4, c5, c6]
-    return np.array([w0 + sum([c[j] / (r[i] ** (3 * j + 3)) for j in range(6)]) for i in range(len(r))])
-
-
 with open("intens.txt", "r") as intens_file:
     with open("energy.txt", "r") as energy_file:
         intens_txt = [line.strip().split("\t") for line in intens_file.readlines()]
