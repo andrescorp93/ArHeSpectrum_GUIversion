@@ -2,11 +2,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from scipy.integrate import quad, simps
-
-
-def potential(x, w0, c1, c2, c3, c4, c5, c6):
-    c = [c1, c2, c3, c4, c5, c6]
-    return np.array([w0 + sum([c[j] / (x[i] ** (3 * j + 3)) for j in range(6)]) for i in range(len(x))])
+from frequency_calc import potential
 
 
 def interpolation_coefficients(x, w):
