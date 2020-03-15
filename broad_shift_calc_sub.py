@@ -7,7 +7,7 @@ import curve
 T = np.arange(300, 850, 50)
 
 os.chdir("results")
-with open("1s5_2p10.txt", "r") as freq_file:
+with open("1s5_2p9.txt", "r") as freq_file:
     lines = [l.strip().split("\t") for l in freq_file.readlines()]
     r = np.array([float(lines[i][0]) for i in range(2, len(lines))])
     curves = []

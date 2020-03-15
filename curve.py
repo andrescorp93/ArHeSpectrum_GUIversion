@@ -11,14 +11,20 @@ class Curve:
     def interpolate(self):
         self.omega0, self.coefficients = interpolation_coefficients(self.grid, self.frequency)
 
-    def sigma_broad_calc(self):
+    def eta(self, rho, s, x0, v):
+        """
+        Calculate eta for start position x0
+        on the trajectory with length s
+        on the distance rho from fixed pont
+        with velocity v
+        """
+        return phase(rho, s, x0, v, self.coefficients)
+
+    def sigma_calc(self):
         pass
 
-    def sigma_shift_calc(self):
+    def coefficient_calc(self):
         pass
 
-    def broad_coefficient_calc(self):
-        pass
-
-    def shift_coefficient_calc(self):
-        pass
+    def __str__(self):
+        return super().__str__()
