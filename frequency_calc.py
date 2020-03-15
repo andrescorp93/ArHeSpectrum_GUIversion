@@ -1,9 +1,9 @@
 import numpy as np
 import os
+from calculation_methods import angtosm
 
 
 cmtos1 = 2.998E10 * 2 * np.pi
-angtosm = 1e-8
 states = {"1s5": ["1A1", "1A2", "1B1", "1B2", "2A2"], "1s4": ["2A1", "2B1", "2B2"],
           "1s3": ["3A2"], "1s2": ["3A1", "3B2", "3B1"], "2p10": ["4B2", "4B1", "4A2"],
           "2p9": ["5A2", "4A1", "5B2", "5B1", "6B2", "6B1", "6A2"],

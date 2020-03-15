@@ -5,6 +5,7 @@ mu = 3.63 # reduced mass for Ar-He
 R = 8.31E7 # gas constant
 hbar = 1.054e-27 # Dirac constant
 c = 2.998E10 # speed of light
+angtosm = 1e-8
 
 
 def maxwell(v, T):
