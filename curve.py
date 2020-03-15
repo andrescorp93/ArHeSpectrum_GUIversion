@@ -1,4 +1,4 @@
-from calculation_methods import *
+from calculationmethods import *
 class Curve:
     def __init__(self, grid, frequency, squared_dipole_moment):
         """Create a new state object"""

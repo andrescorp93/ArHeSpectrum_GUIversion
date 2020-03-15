@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from calculation_methods import angtosm
+from calculationmethods import angtosm
 
 
 cmtos1 = 2.998E10 * 2 * np.pi
