@@ -12,8 +12,9 @@ with open("test_set.txt") as f:
     r = np.array([float(line[0]) for line in lines])
     omega = np.array([float(line[1]) for line in lines])
     curve = Curve(r, omega, 1e-36)
-    rho = np.linspace(5e7, 2e6, 200) ** (-1/3)
-    x0 = np.tan(np.linspace(-(np.pi-0.00021)/2.01, (np.pi-0.0002)/2.01, 400)) * angtosm
+    rho = np.linspace(2e-8, 1.2e-7, 200)
+    print(rho)
+    x0 = np.linspace(-1e-6, 1e-6, 400) * angtosm
     xx, rr = np.meshgrid(x0, rho)
     ss = np.arange(1e-7, 1.6e-6, 1e-7)
     gs = []

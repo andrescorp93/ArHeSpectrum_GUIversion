@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
+from scipy.special import gamma
 
 mu = 3.63 # reduced mass for Ar-He
 R = 8.31E7 # gas constant
@@ -49,45 +50,15 @@ def interpolation_coefficients(x, w):
     return p[0], p[1:]
 
 
-def j(n, z, s):
-    """
-    Calculate integral of function
-    (x ^ 2 + s ^ 2) ^ (-n)
-    from 0 to z
-    """
-    if n == 1:
-        return z / np.sqrt(s ** 2 + z ** 2)
-    elif n == 2:
-        return (np.arctan2(s, z) / 2) + s * z / (2 * (s ** 2 + z ** 2))
-    else:
-        return s * z ** (n - 1) / (n * (s ** 2 + z ** 2) ** (n / 2)) + (n - 1) * j(n - 2, z, s) / n
-
-
-def phase_from_zero(x, s, v, coeffs):
+def phase_shift(rho, v, coeffs):
     """
     Calculate phase integral
     of interpolated frequency function 
     from 0 to x point along trajectory
     on the distance s from fixed point
     """
-    return sum([j(3 * i + 1, x, s) * coeffs[i] * (x ** (-3 * i - 2)) for i in range(len(coeffs))]) / v
-
-
-def phase(s, l, x0, v, coeffs):
-    """
-    Calculate phase integral
-    of interpolated frequency function 
-    from x0 point along trajectory
-    to the length l
-    on the distance s from fixed point
-    """
-    return phase_from_zero(x0+l, s, v, coeffs) - phase_from_zero(x0, s, v, coeffs)
+    return sum([gamma(3*i+2)*coeffs[i]*(rho**(-3*i-2))*np.sqrt(np.pi) / gamma(3*i+5) for i in range(len(coeffs))]) / v
 
 
 def einstein_coefficient(dm2, omega):
     return 4 * dm2 * omega ** 3 / (3 * hbar * c ** 3)
-
-
-def integrand_in_point(r, x, s, v, coeffs):
-    theta = phase(r, s, x, v, coeffs)
-    return r * (1 - np.cos(theta) + 1j*np.sin(theta))

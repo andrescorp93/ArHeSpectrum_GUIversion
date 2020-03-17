@@ -13,20 +13,14 @@ class Curve:
     def interpolate(self):
         self.omega0, self.coefficients = interpolation_coefficients(self.grid, self.frequency)
 
-    def eta(self, rho, s, x0, v):
+    def eta(self, rho, v):
         """
         Calculate eta for start position x0
         on the trajectory with length s
         on the distance rho from fixed pont
         with velocity v
         """
-        return phase(rho, s, x0, v, self.coefficients)
-
-    def g(self, gridr, gridx, s, v):
-        """
-        Correlation function
-        """
-        return simps(np.array([simps(np.array([integrand_in_point(r, x, s, v, self.coefficients)for x in gridx]), gridx) for r in gridr]), gridr)
+        return phase_shift(rho, v, self.coefficients)
 
     def sigma_calc(self):
         pass

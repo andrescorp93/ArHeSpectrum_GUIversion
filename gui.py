@@ -2,6 +2,7 @@ from tkinter import *
 import os
 from curve import Curve
 import numpy as np
+import matplotlib.pyplot as plt
 
 curves = []
 
@@ -26,6 +27,13 @@ def load_state():
     state_label['text'] = f"Substate pair: {curves[statebox.curselection()[0]].name}"
     frequency_label['text'] = f"Frequency: {curves[statebox.curselection()[0]].omega0}"
     intensity_label['text'] = f"Intensity: {curves[statebox.curselection()[0]].intensity}"
+
+
+def plot_phase_shift():
+    c = curves[statebox.curselection()[0]]
+    phi = [c.eta(r, 1e5) for r in c.grid]
+    plt.plot(c.grid, np.cos(phi))
+    plt.show()
 
 
 root = Tk()
@@ -61,6 +69,8 @@ text = Text(out_frame)
 text.grid(row=3, column=0)
 scroll_text = Scrollbar(out_frame, command=text.yview)
 scroll_text.grid(row=3, column=1, sticky=N+S)
+plot_button = Button(out_frame, text="Plot phase shifts", command=plot_phase_shift)
+plot_button.grid(row=4, column=0)
 for text_file in os.listdir("results"):
     filebox.insert(END, text_file)
     
