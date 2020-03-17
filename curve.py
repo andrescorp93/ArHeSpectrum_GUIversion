@@ -1,7 +1,9 @@
 from calculationmethods import *
+from scipy.integrate import simps
 class Curve:
-    def __init__(self, grid, frequency, squared_dipole_moment):
+    def __init__(self, grid, frequency, squared_dipole_moment, name=""):
         """Create a new state object"""
+        self.name = name
         self.frequency = frequency
         self.grid = grid
         self.interpolate()
@@ -20,6 +22,12 @@ class Curve:
         """
         return phase(rho, s, x0, v, self.coefficients)
 
+    def g(self, gridr, gridx, s, v):
+        """
+        Correlation function
+        """
+        return simps(np.array([simps(np.array([integrand_in_point(r, x, s, v, self.coefficients)for x in gridx]), gridx) for r in gridr]), gridr)
+
     def sigma_calc(self):
         pass
 
@@ -27,4 +35,9 @@ class Curve:
         pass
 
     def __str__(self):
-        return super().__str__()
+        result = f"States: {self.name}\n"
+        result += f"Intensity: {self.intensity}\n"
+        result += f"Unperturbed frequency: {self.omega0}\n"
+        for i in range(len(self.coefficients)):
+            result += f"C_{3*(i + 1)} = {self.coefficients[i]}\n"
+        return result

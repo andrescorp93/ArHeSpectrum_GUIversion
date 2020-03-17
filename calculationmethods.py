@@ -78,7 +78,7 @@ def phase(s, l, x0, v, coeffs):
     Calculate phase integral
     of interpolated frequency function 
     from x0 point along trajectory
-    to the distance l
+    to the length l
     on the distance s from fixed point
     """
     return phase_from_zero(x0+l, s, v, coeffs) - phase_from_zero(x0, s, v, coeffs)
@@ -86,3 +86,8 @@ def phase(s, l, x0, v, coeffs):
 
 def einstein_coefficient(dm2, omega):
     return 4 * dm2 * omega ** 3 / (3 * hbar * c ** 3)
+
+
+def integrand_in_point(r, x, s, v, coeffs):
+    theta = phase(r, s, x, v, coeffs)
+    return r * (1 - np.cos(theta) + 1j*np.sin(theta))
