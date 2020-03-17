@@ -31,8 +31,8 @@ def load_state():
 
 def plot_phase_shift():
     c = curves[statebox.curselection()[0]]
-    phi = [c.eta(r, 1e5) for r in c.grid]
-    plt.plot(c.grid, np.cos(phi))
+    plt.plot(c.grid, c.frequency, 'ro')
+    plt.plot(c.grid, c.interpolated())
     plt.show()
 
 
@@ -69,7 +69,7 @@ text = Text(out_frame)
 text.grid(row=3, column=0)
 scroll_text = Scrollbar(out_frame, command=text.yview)
 scroll_text.grid(row=3, column=1, sticky=N+S)
-plot_button = Button(out_frame, text="Plot phase shifts", command=plot_phase_shift)
+plot_button = Button(out_frame, text="Plot", command=plot_phase_shift)
 plot_button.grid(row=4, column=0)
 for text_file in os.listdir("results"):
     filebox.insert(END, text_file)

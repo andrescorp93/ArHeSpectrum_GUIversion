@@ -13,6 +13,10 @@ class Curve:
     def interpolate(self):
         self.omega0, self.coefficients = interpolation_coefficients(self.grid, self.frequency)
 
+    def interpolated(self):
+        c1, c2, c3, c4, c5, c6 = self.coefficients
+        return potential(self.grid, self.omega0, c1, c2, c3, c4, c5, c6)
+
     def eta(self, rho, v):
         """
         Calculate eta for start position x0
