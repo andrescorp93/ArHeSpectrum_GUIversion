@@ -19,15 +19,16 @@ class Curve:
 
     def eta(self, rho, v):
         """
-        Calculate eta for start position x0
-        on the trajectory with length s
+        Calculate eta
         on the distance rho from fixed pont
         with velocity v
         """
         return phase_shift(rho, v, self.coefficients)
 
-    def sigma_calc(self):
-        pass
+    def sigma_calc(self, v):
+        rho = np.arange(2e-8, 1e-7, 1e-10)
+        phi = self.eta(rho, v)
+        return simps(rho * (np.ones(len(rho))-np.cos(phi)+1j*np.sin(phi)), rho)
 
     def coefficient_calc(self):
         pass

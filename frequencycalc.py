@@ -54,15 +54,6 @@ with open("intens.txt", "r") as intens_file:
                                            "Frequency Profile": np.abs(energies[k] - energies[subkeys[i]]) * cmtos1,
                                            "Base States": bs}
 
-        transitions = []
-
-        for k in frequencies.keys():
-            if k != "R":
-                """p, cov = curve_fit(potential, frequencies["R"], frequencies[k]["Frequency Profile"],
-                                   p0=[frequencies[k]["Frequency Profile"][-1], 3E-9, -4E-31,
-                                       1E-53, -3E-76, 1E-99, -2E-123], gtol=1e-18)"""
-                transitions.append(frequencies[k]["Base States"])
-
         frequencies_by_states = {"R": frequencies["R"]}
         for k, v in frequencies.items():
             if k != "R":

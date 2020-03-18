@@ -57,7 +57,7 @@ def phase_shift(rho, v, coeffs):
     from 0 to x point along trajectory
     on the distance s from fixed point
     """
-    return sum([gamma(3*i+2)*coeffs[i]*(rho**(-3*i-2))*np.sqrt(np.pi) / gamma(3*i+5) for i in range(len(coeffs))]) / v
+    return sum([gamma(3*i+2)*coeffs[i]*(rho**(-3*i-2))*np.sqrt(np.pi)/gamma(3*i+5) for i in range(len(coeffs))])/v
 
 
 def einstein_coefficient(dm2, omega):
