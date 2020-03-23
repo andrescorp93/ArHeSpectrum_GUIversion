@@ -1,6 +1,7 @@
 from tkinter import *
 import os
 from curve import Curve
+from calculationmethods import maxwell
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -20,6 +21,13 @@ def load_file():
     for curve in curves:
         statebox.insert(END, curve.name)
 
+def calc_file():
+    load_file()
+    omega = [c.omega0 for c in curves]
+    a = [c.intensity for c in curves]
+    plt.plot(omega, a, 'ro')
+    plt.show()
+
 
 def load_state():
     text.delete(1.0, END)
@@ -33,21 +41,25 @@ def plot_phase_shift():
     plt.plot(c.grid, c.interpolated())
     plt.show()
 
-def calc_cross_section():
-    v = np.arange(1e4, 1e7, 5e3)
+
+def calc_coefficients():
+    load_state()
     c = curves[statebox.curselection()[0]]
-    s_re = np.zeros(len(v))
-    s_im = np.zeros(len(v))
-    for i in range(len(v)):
-        s = c.sigma_calc(v[i])
-        s_re[i] = np.real(s)
-        s_im[i] = np.imag(s)
-        result = f"v = {v[i]} cm/s; s_shift = {s_im[i]} cm^2; s_broad = {s_re[i]} cm^2\n"
-        text.insert(END, result)
-    plt.plot(v, s_re)
-    plt.plot(v, s_im)
+    for t in np.arange(300, 1050, 50):
+        r = c.coefficient_calc(t)
+        print(r)
+        text.insert(END, f"T = {t} K; ksi_b = {np.real(r)} cm^3/s; ksi_s = {np.imag(r)} cm^3/s\n")
+
+
+def calc_subintegral():
+    rho = np.arange(1.9e-8, 1e-7, 2e-9)
+    T = 300
+    c = curves[statebox.curselection()[0]]
+    s = [c.sub_integrand(r, T) for r in rho]
+    plt.plot(rho, np.real(s))
+    plt.plot(rho, np.imag(s))
     plt.show()
-    
+
 
 root = Tk()
 file_frame = Frame(root)
@@ -59,6 +71,8 @@ get_file_button.grid(row=1, column=0)
 scroll_file = Scrollbar(file_frame, command=filebox.yview)
 scroll_file.grid(row=0, column=1, sticky=N+S)
 filebox.config(yscrollcommand=scroll_file.set)
+calc_file_button = Button(file_frame, text="Calculate spectrum", command=calc_file)
+calc_file_button.grid(row=2, column=0)
 
 state_frame = Frame(root)
 state_frame.grid(row=0, column=1)
@@ -81,8 +95,10 @@ calc_frame = Frame(root)
 calc_frame.grid(row=1, column=2)
 plot_button = Button(calc_frame, text="Plot", command=plot_phase_shift)
 plot_button.grid(row=0, column=0)
-calc_cross_button = Button(calc_frame, text="Calculate cross section", command=calc_cross_section)
-calc_cross_button.grid(row=0, column=1)
+calc_coeffs_button = Button(calc_frame, text="Calculate subintegral", command=calc_subintegral)
+calc_coeffs_button.grid(row=0, column=1)
+calc_coeffs_button = Button(calc_frame, text="Calculate coefficients", command=calc_coefficients)
+calc_coeffs_button.grid(row=0, column=2)
 for text_file in os.listdir("results"):
     filebox.insert(END, text_file)
     

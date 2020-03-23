@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
-from scipy.special import gamma
+from scipy.special import gamma, hyp2f1
 
 mu = 3.63 # reduced mass for Ar-He
 R = 8.31E7 # gas constant
@@ -32,12 +32,12 @@ def linear_func(x, k, b=0):
     return np.array([k * x[i] + b for i in range(len(x))])
 
 
-def potential(r, w0, c1, c2, c3, c4, c5, c6):
+def potential(r, c1, c2, c3, c4, c5, c6):
     """
     Model of potential functions
     """
     coeffs = [c1, c2, c3, c4, c5, c6] # Yeah, it's very stupid
-    return np.array([w0 + sum([coeffs[j] / (r[i] ** (3 * j + 3)) for j in range(6)]) for i in range(len(r))])
+    return np.array([sum([coeffs[j] / (r[i] ** (3 * j + 3)) for j in range(6)]) for i in range(len(r))])
 
 
 def interpolation_coefficients(x, w):
@@ -46,18 +46,30 @@ def interpolation_coefficients(x, w):
     Look at scipy.optimize.curve_fit docs
     """
     p, cov = curve_fit(potential, x, w,
-                       p0=[w[-1], 3E-9, -4E-31, 1E-53, -3E-76, 1E-99, -2E-123], gtol=1e-18)
-    return p[0], p[1:]
+                       p0=[7.7E-9, -8.5E-31, 2.3E-53, -3.1E-76, 2.0E-99, -4.9E-123], gtol=1e-18)
+    return p
 
 
-def phase_shift(rho, v, coeffs):
+def cos_power_integral(phi, n):
+    return -np.pow(np.cos(phi), n-1) * hyp2f1(1/2,(n-1)/2,(n+1)/2,np.pow(np.cos(phi), 2))
+
+
+def position_integral(r, x0, s, n):
+    phi0 = np.arctan(x0 / r)
+    phi1 = np.arctan((x0+s) / r)
+    j0 = -cos_power_integral(phi0, n)
+    j1 = -cos_power_integral(phi1, n)
+    return j0 + j1 if phi0*phi1 < 0 else j1 - j0
+
+def phase_shift(r, x0, s, v, coeffs):
     """
     Calculate phase integral
     of interpolated frequency function 
     from 0 to x point along trajectory
     on the distance s from fixed point
     """
-    return sum([gamma(3*i+2)*coeffs[i]*(rho**(-3*i-2))*np.sqrt(np.pi)/gamma(3*i+5) for i in range(len(coeffs))])/v
+    k = [position_integral(r, x0, s, 3*i+3) for i in range(len(coeffs))]
+    return sum([k[i]*coeffs[i]*(r**(-3*i-2))/v for i in range(len(coeffs))])
 
 
 def einstein_coefficient(dm2, omega):
