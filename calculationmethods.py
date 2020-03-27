@@ -50,25 +50,14 @@ def interpolation_coefficients(x, w):
     return p
 
 
-def cos_power_integral(phi, n):
-    return -np.pow(np.cos(phi), n-1) * hyp2f1(1/2,(n-1)/2,(n+1)/2,np.pow(np.cos(phi), 2))
-
-
-def position_integral(r, x0, s, n):
-    phi0 = np.arctan(x0 / r)
-    phi1 = np.arctan((x0+s) / r)
-    j0 = -cos_power_integral(phi0, n)
-    j1 = -cos_power_integral(phi1, n)
-    return j0 + j1 if phi0*phi1 < 0 else j1 - j0
-
-def phase_shift(r, x0, s, v, coeffs):
+def phase_shift(r, v, coeffs):
     """
     Calculate phase integral
     of interpolated frequency function 
     from 0 to x point along trajectory
     on the distance s from fixed point
     """
-    k = [position_integral(r, x0, s, 3*i+3) for i in range(len(coeffs))]
+    k = [np.sqrt(np.pi)*gamma((3*i+2)/2)/gamma((3*i+3)/2) for i in range(len(coeffs))]
     return sum([k[i]*coeffs[i]*(r**(-3*i-2))/v for i in range(len(coeffs))])
 
 

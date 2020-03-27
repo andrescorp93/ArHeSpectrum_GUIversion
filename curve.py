@@ -1,5 +1,5 @@
 from calculationmethods import *
-from scipy.integrate import simps
+from scipy.integrate import nquad, romberg, quad
 class Curve:
     def __init__(self, grid, frequency, squared_dipole_moment, name=""):
         """Create a new state object"""
@@ -15,8 +15,8 @@ class Curve:
         self.coefficients = interpolation_coefficients(self.grid, self.frequency)
 
     def interpolated(self):
-        c1, c2, c3, c4, c5, c6 = self.coefficients
-        return potential(self.grid, c1, c2, c3, c4, c5, c6)
+        c2, c3, c4, c5 = self.coefficients
+        return potential(self.grid, c2, c3, c4, c5)
 
     def eta(self, rho, v):
         """
@@ -26,20 +26,18 @@ class Curve:
         """
         return phase_shift(rho, v, self.coefficients)
 
-    def sub_integrand(self, r, T):
-        v = np.arange(10, 1.05e6, 5e2)
-        phi = self.eta(r, v)
-        return simps([maxwell(u, T)*u*r*(1-np.cos(phi)+1j*np.sin(phi)) for u in v], v)
-
     def coefficient_calc(self, T):
-        rho = np.arange(1.9e-8, 1e-7, 2e-9)
-        integrand = np.array([self.sub_integrand(r, T) for r in rho])
-        return simps(integrand, rho)
+        phi = lambda r, v: phase_shift(r, v, self.coefficients)
+        integrandr = lambda r, v: r*v*maxwell(v, T)*(1-np.cos(phi(r, v)))
+        integrandi = lambda r, v: r*v*maxwell(v, T)*np.sin(phi(r, v))
+        r = quad(lambda v: romberg(lambda r: integrandr(r, v), 2e-8, 1.5e-7), 1e2, 1e6)[0]
+        i = quad(lambda v: romberg(lambda r: integrandi(r, v), 2e-8, 1.5e-7), 1e2, 1e6)[0]
+        return r + 1j*i
 
     def __str__(self):
         result = f"States: {self.name}\n"
         result += f"Intensity: {self.intensity}\n"
         result += f"Unperturbed frequency: {self.omega0}\n"
         for i in range(len(self.coefficients)):
-            result += f"C_{3*(i + 1)} = {self.coefficients[i]}\n"
+            result += f"C_{3*(i + 2)} = {self.coefficients[i]}\n"
         return result
