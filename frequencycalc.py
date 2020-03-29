@@ -35,7 +35,7 @@ def compound_states(statei, statef):
 
 
 with open("intens.txt", "r") as intens_file:
-    with open("energy.txt", "r") as energy_file:
+    with open("energy_2.txt", "r") as energy_file:
         intens_txt = [line.strip().split("\t") for line in intens_file.readlines()]
         energy_txt = [line.strip().split("\t") for line in energy_file.readlines()]
         energies = {energy_txt[0][i]: np.array([float(energy_txt[k][i]) for k in range(1, len(energy_txt))])
