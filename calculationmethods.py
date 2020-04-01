@@ -32,12 +32,12 @@ def linear_func(x, k, b=0):
     return np.array([k * x[i] + b for i in range(len(x))])
 
 
-def potential(r, c1, c2, c3, c4, c5, c6):
+def potential(r, c1, c2, c3):
     """
     Model of potential functions
     """
-    coeffs = [c1, c2, c3, c4, c5, c6] # Yeah, it's very stupid
-    return np.array([sum([coeffs[j] / (r[i] ** (3 * j + 3)) for j in range(6)]) for i in range(len(r))])
+    coeffs = [c1, c2, c3] # Yeah, it's very stupid
+    return np.array([sum([coeffs[j] / (r[i] ** (6 * j + 6)) for j in range(3)]) for i in range(len(r))])
 
 
 def interpolation_coefficients(x, w):
@@ -46,7 +46,7 @@ def interpolation_coefficients(x, w):
     Look at scipy.optimize.curve_fit docs
     """
     p, cov = curve_fit(potential, x, w,
-                       p0=[7.7E-9, -8.5E-31, 2.3E-53, -3.1E-76, 2.0E-99, -4.9E-123], gtol=1e-18)
+                       p0=[-8.5E-31, -3.1E-76, -4.9E-123], gtol=1e-18)
     return p
 
 

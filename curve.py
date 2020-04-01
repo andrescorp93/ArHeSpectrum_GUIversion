@@ -15,8 +15,8 @@ class Curve:
         self.coefficients = interpolation_coefficients(self.grid, self.frequency)
 
     def interpolated(self):
-        c1, c2, c3, c4, c5, c6 = self.coefficients
-        return potential(self.grid, c1, c2, c3, c4, c5, c6)
+        c1, c2, c3 = self.coefficients
+        return potential(self.grid, c1, c2, c3)
 
     def eta(self, rho, v):
         """
@@ -39,5 +39,5 @@ class Curve:
         result += f"Intensity: {self.intensity}\n"
         result += f"Unperturbed frequency: {self.omega0}\n"
         for i in range(len(self.coefficients)):
-            result += f"C_{3*(i + 2)} = {self.coefficients[i]}\n"
+            result += f"C_{6*(i + 1)} = {self.coefficients[i]}\n"
         return result
