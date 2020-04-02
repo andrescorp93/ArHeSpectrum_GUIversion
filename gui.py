@@ -23,7 +23,7 @@ def load_file():
 
 def calc_file():
     load_file()
-    omega = [c.omega0 for c in curves]
+    omega = [c.coefficients[0] for c in curves]
     a = [c.intensity for c in curves]
     plt.plot(omega, a, 'ro')
     plt.show()

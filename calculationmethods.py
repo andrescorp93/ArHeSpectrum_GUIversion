@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
-from scipy.special import gamma, hyp2f1
+from scipy.special import gamma
 
 mu = 3.63 # reduced mass for Ar-He
 R = 8.31E7 # gas constant
@@ -32,22 +32,22 @@ def linear_func(x, k, b=0):
     return np.array([k * x[i] + b for i in range(len(x))])
 
 
-def potential(r, c1, c2, c3):
+def approx_coeffs(x, y, order=4, n=10):
+    """
+    There used Method of least squares
+    for polynomials
+    """
+    x_vec = [x ** (-order*i) for i in range(n+1)]
+    m = np.array([[np.dot(x_vec[i], x_vec[j]) for j in range(n+1)] for i in range(n+1)])
+    b = np.array([np.dot(y, x_vec[i]) for i in range(n+1)])
+    return np.linalg.solve(m, b)
+
+
+def potential(r, c, order=4):
     """
     Model of potential functions
     """
-    coeffs = [c1, c2, c3] # Yeah, it's very stupid
-    return np.array([sum([coeffs[j] / (r[i] ** (6 * j + 6)) for j in range(3)]) for i in range(len(r))])
-
-
-def interpolation_coefficients(x, w):
-    """
-    There used notation of curve_fit method
-    Look at scipy.optimize.curve_fit docs
-    """
-    p, cov = curve_fit(potential, x, w,
-                       p0=[-8.5E-31, -3.1E-76, -4.9E-123], gtol=1e-18)
-    return p
+    return np.array([np.dot([x ** (-order*i) for i in range(len(c))], c) for x in r])
 
 
 def phase_shift(r, v, coeffs):
@@ -57,8 +57,8 @@ def phase_shift(r, v, coeffs):
     from 0 to x point along trajectory
     on the distance s from fixed point
     """
-    k = [np.sqrt(np.pi)*gamma((3*i+2)/2)/gamma((3*i+3)/2) for i in range(len(coeffs))]
-    return sum([k[i]*coeffs[i]*(r**(-3*i-2))/v for i in range(len(coeffs))])
+    k = [np.sqrt(np.pi)*gamma(2*i+(3/2))/gamma(2*i+2) for i in range(len(coeffs))]
+    return sum([k[i]*coeffs[i]*(r**(-4*i-3))/v for i in range(len(coeffs))])
 
 
 def einstein_coefficient(dm2, omega):
