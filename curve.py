@@ -12,7 +12,7 @@ class Curve:
     
     def interpolate(self):
         preres = approx_coeffs(self.grid/angtosm, self.frequency/(2*np.pi*c))
-        conv = [preres[i] * (2*np.pi*c) * angtosm**(4*i) for i in range(len(preres))]
+        conv = [preres[i] * (2*np.pi*c) * angtosm**(6*i) for i in range(len(preres))]
         self.coefficients = np.array(conv)
 
     def interpolated(self):
@@ -31,5 +31,5 @@ class Curve:
         result += f"Intensity: {self.intensity}\n"
         result += f"Unperturbed frequency: {self.coefficients[0]}\n"
         for i in range(1, len(self.coefficients)):
-            result += f"C_{4*i} = {self.coefficients[i]}\n"
+            result += f"C_{6*i} = {self.coefficients[i]}\n"
         return result

@@ -32,7 +32,7 @@ def linear_func(x, k, b=0):
     return np.array([k * x[i] + b for i in range(len(x))])
 
 
-def approx_coeffs(x, y, order=4, n=10):
+def approx_coeffs(x, y, order=6, n=6):
     """
     There used Method of least squares
     for polynomials
@@ -43,22 +43,22 @@ def approx_coeffs(x, y, order=4, n=10):
     return np.linalg.solve(m, b)
 
 
-def potential(r, c, order=4):
+def potential(r, c, order=6):
     """
     Model of potential functions
     """
     return np.array([np.dot([x ** (-order*i) for i in range(len(c))], c) for x in r])
 
 
-def phase_shift(r, v, coeffs):
+def phase_shift(r, v, coeffs, order=6):
     """
     Calculate phase integral
     of interpolated frequency function 
     from 0 to x point along trajectory
     on the distance s from fixed point
     """
-    k = [np.sqrt(np.pi)*gamma(2*i+(3/2))/gamma(2*i+2) for i in range(len(coeffs))]
-    return sum([k[i]*coeffs[i]*(r**(-4*i-3))/v for i in range(len(coeffs))])
+    k = [np.sqrt(np.pi)*gamma(order*(i+1)-1/2)/gamma(order*(i+1)) for i in range(len(coeffs))]
+    return sum([k[i]*coeffs[i]*(r**(-order*(i+1)-1))/v for i in range(len(coeffs))])
 
 
 def einstein_coefficient(dm2, omega):
