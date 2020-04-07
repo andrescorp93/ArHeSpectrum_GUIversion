@@ -32,7 +32,7 @@ def linear_func(x, k, b=0):
     return np.array([k * x[i] + b for i in range(len(x))])
 
 
-def approx_coeffs(x, y, order=6, n=6):
+def approx_coeffs(x, y, order=6, n=5):
     """
     There used Method of least squares
     for polynomials

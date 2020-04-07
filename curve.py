@@ -1,5 +1,7 @@
 from calculationmethods import *
 from scipy.integrate import nquad, romberg, quad
+from scipy.special import gamma
+
 class Curve:
     def __init__(self, grid, frequency, squared_dipole_moment, name=""):
         """Create a new state object"""
@@ -18,13 +20,26 @@ class Curve:
     def interpolated(self):
         return potential(self.grid, self.coefficients)
 
-    def coefficient_calc(self, T):
-        phi = lambda r, v: phase_shift(r, v, self.coefficients[1:])
-        integrandr = lambda r, v: r*v*maxwell(v, T)*(1-np.cos(phi(r, v)))
-        integrandi = lambda r, v: r*v*maxwell(v, T)*np.sin(phi(r, v))
-        r = quad(lambda v: quad(lambda r: integrandr(r, v), 2e-8, 1.5e-6)[0], 1e2, 1e6)[0]
-        i = quad(lambda v: quad(lambda r: integrandi(r, v), 2e-8, 1.5e-6)[0], 1e2, 1e6)[0]
-        return r + 1j*i
+    def coefficient_calc(self, T, order=6):
+        c = self.coefficients
+        n = order
+        p1 = np.power(2, (1/2)-(3/(n-1)))
+        p2 = gamma(2-(1/(n-1))) * gamma((n-3)/(n-1))
+        p3 = np.power(np.pi*mu/(R*T), -(1/2)+(1/(n-1)))
+        p4 = np.power(-1j * gamma(n/2) / (gamma((n-1)/2) * c[1]), -2/(n-1))
+        kappa = p1 * p2 * p3 * p4
+        coeffs = np.zeros(len(c)-2)
+        for j in range(2, len(c)):
+            p1 = 1j * np.power(2, (5+n-2*j*n)/(1-n)) * np.power(np.pi, (3-j*n)/(2*(n-1)))
+            p21 = gamma((n*j-3)/(n-1))
+            p22 = gamma((n*j+1)/2)
+            p23 = gamma((2*n*j+n-7)/(2*(n-1)))
+            p24 = gamma((n*j-3)/(n-1)) * (n-1)
+            p2 = p21*p22*p23 / p24
+            p3 = np.power(mu/(R*T), (2+n-j*n)/(2*(n-1)))
+            p4 = np.power(-1j * gamma(n/2) / (gamma((n-1)/2) * c[1]), (n*j-3)/(n-1))
+            coeffs[j-2] = p1*p2*p3*p4
+        return np.conj(kappa + np.dot(coeffs, c[2:]))
 
     def __str__(self):
         result = f"States: {self.name}\n"
