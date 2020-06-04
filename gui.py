@@ -23,7 +23,14 @@ def load_file():
 
 def calc_file():
     load_file()
-    omega = [c.coefficients[0] for c in curves]
+    try:
+        os.mkdir("results/coefficients/")
+    except OSError:
+        pass
+    text_file_out = open("results/coefficients/" + filebox.get(filebox.curselection()), "w")
+    text_file_out.write("States\t" +"\t".join([curve.name for curve in curves]) + "\n")
+    text_file_out.write("Frequency\t" +"\t".join([str(curve.frequency[-1]) for curve in curves]) + "\n")
+    omega = [c.frequency[-1] for c in curves]
     a = [c.intensity for c in curves]
     plt.plot(omega, a, 'ro')
     plt.show()
@@ -34,11 +41,10 @@ def load_state():
     text.insert(END, curves[statebox.curselection()[0]])
 
 
-def plot_phase_shift():
+def plot_phase():
     load_state()
     c = curves[statebox.curselection()[0]]
-    plt.plot(c.grid, c.frequency, 'ro')
-    plt.plot(c.grid, c.interpolated())
+    plt.plot(c.r, c.r*np.sin(c.phi/100000))
     plt.show()
 
 
@@ -87,9 +93,9 @@ scroll_text.grid(row=0, column=1, sticky=N+S)
 
 calc_frame = Frame(root)
 calc_frame.grid(row=1, column=2)
-plot_button = Button(calc_frame, text="Plot", command=plot_phase_shift)
-plot_button.grid(row=0, column=0)
-calc_coeffs_button = Button(calc_frame, text="Calculate coefficients", command=calc_coefficients)
+plot_second_button = Button(calc_frame, text="Plot phase", command=plot_phase)
+plot_second_button.grid(row=0, column=1)
+calc_coeffs_button = Button(calc_frame, text="Calculate sigmas", command=calc_coefficients)
 calc_coeffs_button.grid(row=0, column=2)
 for text_file in os.listdir("results"):
     filebox.insert(END, text_file)

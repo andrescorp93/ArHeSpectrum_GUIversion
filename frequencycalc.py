@@ -40,6 +40,17 @@ with open("intens.txt", "r") as intens_file:
         energy_txt = [line.strip().split("\t") for line in energy_file.readlines()]
         energies = {energy_txt[0][i]: np.array([float(energy_txt[k][i]) for k in range(1, len(energy_txt))])
                     for i in range(len(energy_txt[0]))}
+        limits = {}
+        for k, v in states.items():
+            l = 0
+            for s in v:
+                l += energies[s][-1]
+            limits[k] = l / len(v)
+        for k, v in energies.items():
+            if k == "R":
+                energies[k] = np.append(v, [100])
+            else:
+                energies[k] = np.append(v, limits[find_state_by_substate(states, k)])
         subkeys = [k for k in energies.keys()][1:]
         intens = {s[0]: [float(w) for w in s[1:]] for s in intens_txt[2:]}
         frequencies = {"R": energies["R"] * angtosm}
@@ -77,7 +88,7 @@ with open("intens.txt", "r") as intens_file:
                 filename = k + ".txt"
                 open(filename, "w").close()
                 with open(filename, "w") as res_file:
-                    start_string = ""
+                    start_string = "R\t"
                     for sk in v.keys():
                         start_string += sk + "\t"
                     res_file.write(start_string.strip() + "\n")
