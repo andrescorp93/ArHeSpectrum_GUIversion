@@ -34,7 +34,7 @@ def compound_states(statei, statef):
             return statef + "_" + statei
 
 
-with open("intens.txt", "r") as intens_file:
+with open("TDM22.txt", "r") as intens_file:
     with open("energy_2.txt", "r") as energy_file:
         intens_txt = [line.strip().split("\t") for line in intens_file.readlines()]
         energy_txt = [line.strip().split("\t") for line in energy_file.readlines()]
@@ -77,11 +77,11 @@ with open("intens.txt", "r") as intens_file:
                                                                   "Frequency Profile": v["Frequency Profile"]}
 
         try:
-            os.mkdir("results")
+            os.mkdir("results2")
         except OSError:
             pass
         finally:
-            os.chdir("results")
+            os.chdir("results2")
 
         for k, v in frequencies_by_states.items():
             if k != "R":

@@ -15,9 +15,9 @@ def load_file():
     lines = [l.strip().split("\t") for l in text_file.readlines()]
     names = lines[0]
     r = np.array([float(lines[i][0]) for i in range(2, len(lines))])
-    for i in range(len(lines[0])):
+    for i in range(len(lines[0])-1):
         omega = np.array([float(lines[j][i + 1]) for j in range(2, len(lines))])
-        curves.append(Curve(r, omega, float(lines[1][i + 1]) * 1e-36, names[i]))
+        curves.append(Curve(r, omega, float(lines[1][i + 1]) * 1e-36, names[i + 1]))
     for curve in curves:
         statebox.insert(END, curve.name)
 
@@ -30,7 +30,13 @@ def calc_file():
     text_file_out = open("results/coefficients/" + filebox.get(filebox.curselection()), "w")
     text_file_out.write("States\t" +"\t".join([curve.name for curve in curves]) + "\n")
     text_file_out.write("Frequency\t" +"\t".join([str(curve.frequency[-1]) for curve in curves]) + "\n")
-    omega = [c.frequency[-1] for c in curves]
+    text_file_out.write("Intensity\t" +"\t".join([str(curve.intensity) for curve in curves]) + "\n")
+    for t in np.arange(300, 1050, 50):
+        r = [curve.coefficient_calc(t) for curve in curves]
+        text_file_out.write(str(t) + " Broad\t" +"\t".join([str(np.real(k)) for k in r]) + "\n")
+        text_file_out.write(str(t) + " Shift\t" +"\t".join([str(np.imag(k)) for k in r]) + "\n")
+    text_file_out.close()
+    omega = [c.frequency[-2] for c in curves]
     a = [c.intensity for c in curves]
     plt.plot(omega, a, 'ro')
     plt.show()

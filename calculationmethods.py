@@ -6,7 +6,13 @@ mu = 3.63 # reduced mass for Ar-He
 R = 8.31E7 # gas constant
 hbar = 1.054e-27 # Dirac constant
 c = 2.998E10 # speed of light
-angtosm = 1e-8
+cmtos1 = c * 2 * np.pi
+angtocm = 1E-8
+
+
+def power_integral(r, n):
+    c = np.sqrt(np.pi)*gamma((n-1)/2)/gamma(n/2)
+    return np.power(r, 1-n)*c
 
 
 def maxwell(v, T):
@@ -32,40 +38,49 @@ def linear_func(x, k, b=0):
     return np.array([k * x[i] + b for i in range(len(x))])
 
 
-def approx_coeffs(x, y, order=4, n=10):
+def approx_coeffs(x, y, k=4, n=10):
     """
     There used Method of least squares
     for polynomials
     """
-    x_vec = [x ** (-order*i) for i in range(n+1)]
-    m = np.array([[np.dot(x_vec[i], x_vec[j]) for j in range(n+1)] for i in range(n+1)])
-    b = np.array([np.dot(y, x_vec[i]) for i in range(n+1)])
+    if k == 0:
+        order = [0, 6, 8, 12]
+    else:
+        order = [k*i for i in range(m)]
+    x_vec = [x ** (-order[i]) for i in range(len(order))]
+    m = np.array([[np.dot(x_vec[i], x_vec[j]) for j in range(len(order))] for i in range(len(order))])
+    b = np.array([np.dot(y, x_vec[i]) for i in range(len(order))])
     return np.linalg.solve(m, b)
 
 
-def potential(r, c, order=4):
+def potential(r, c, k=4, m=10):
     """
     Model of potential functions
     """
-    return np.array([np.dot([x ** (-order*i) for i in range(len(c))], c) for x in r])
+    if k == 0:
+        order = [0, 6, 8, 12]
+    else:
+        order = [k*i for i in range(m)]
+    x = [r ** (-order[i]) for i in range(len(c))]
+    return np.dot(c, x)
 
 
-def phase_shift(r, v, coeffs, order=4):
+def phase_shift(r, coeffs, n=4, m=10):
     """
     Calculate phase integral coefficients
     of interpolated frequency function 
     from 0 to x point along trajectory
     on the distance s from fixed point
     """
-    k = [np.sqrt(np.pi)*gamma((order*(i+1)-1)/2)/gamma(order*(i+1)/2) for i in range(len(coeffs))]
-    return np.array([sum([k[i]*coeffs[i]*(x**(1-order*(i+1)))/v for i in range(len(coeffs))]) for x in r])
-
-
-def integral_by_v(n, T):
-    coeff = np.power(2, (n+3)/2) * gamma((n+4)/2) / np.sqrt(np.pi)
-    vn = np.power(R*T/mu, (n+1)/2)
-    return coeff * vn
+    if n == 0:
+        order = [0, 6, 8, 12]
+    else:
+        order = [n*i for i in range(1, m)]
+    eta = np.zeros(len(r))
+    for k in range(len(coeffs)):
+        eta += power_integral(r, order[k]) * coeffs[k]
+    return eta * angtocm * cmtos1
 
 
 def einstein_coefficient(dm2, omega):
-    return 4 * dm2 * omega ** 3 / (3 * hbar * c ** 3)
+    return 4*dm2*omega**3 / (3*hbar*c**3)

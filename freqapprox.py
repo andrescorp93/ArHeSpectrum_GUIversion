@@ -91,9 +91,29 @@ with open("results/1s5_2p9.txt", "r") as energy_file:
             cs = CubicSpline(energies["R"], energies[k], bc_type=((2, 0), (1, 0)))
             v = np.arange(1e4, 6e5, 1e3)
             x = np.arange(2, 9, 0.05)
-            plt.plot(x, eta_by_coeffs(x, coefficients2[1:], 0))
-            plt.plot(x, eta_by_coeffs(x, coefficients1[1:], 6, 4))
-            plt.plot(x, eta_by_spline(x, cs))
+            u1 = [potential(r, coefficients2, 0) for r in x]
+            u2 = [potential(r, coefficients1, 6, 4) for r in x]
+            plt.plot(energies["R"], energies[k], "ro")
+            plt.plot(x, u1, label="6-8-12 form")
+            plt.plot(x, u2, label="6k form")
+            plt.legend()
             plt.show()
-            #sigma_s = [simps(x * np.sin(eta_by_coeffs(x, coefficients2[1:], 0)/u), x) * angtocm**2 for u in v]
-            #sigma_b = [simps(x * (1-np.cos(eta_by_coeffs(x, coefficients2[1:], 0)/u)), x) * angtocm**2 for u in v]
+            plt.plot(x, eta_by_coeffs(x, coefficients2[1:], 0), label="6-8-12 form")
+            plt.plot(x, eta_by_coeffs(x, coefficients1[1:], 6, 4), label="6k form")
+            plt.legend()
+            plt.show()
+            sigma_s = [simps(x * np.sin(eta_by_coeffs(x, coefficients2[1:], 0)/u), x) * angtocm**2 for u in v]
+            plt.plot(v, v * sigma_s * maxwell(v, 300), label="6-8-12 form")
+            sigma_s = [simps(x * np.sin(eta_by_coeffs(x, coefficients1[1:], 6, 4)/u), x) * angtocm**2 for u in v]
+            plt.plot(v, v * sigma_s * maxwell(v, 300), label="6k form")
+            plt.legend()
+            plt.show()
+            sigma_b = [simps(x * (1-np.cos(eta_by_coeffs(x, coefficients2[1:], 0)/u)), x) * angtocm**2 for u in v]
+            print(sigma_b)
+            plt.plot(v, v * sigma_b * maxwell(v, 300), label="6-8-12 form")
+            sigma_b = [simps(x * (1-np.cos(eta_by_coeffs(x, coefficients1[1:], 6, 4)/u)), x) * angtocm**2 for u in v]
+            plt.plot(v, v * sigma_b * maxwell(v, 300), label="6k form")
+            plt.legend()
+            plt.show()
+            
+            

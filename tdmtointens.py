@@ -1,7 +1,7 @@
 import numpy as np
 import re
 
-with open("DM.out", "r") as tdm_file:
+with open("DM2.out", "r") as tdm_file: # input from other file
     m = [line.strip() for line in tdm_file.readlines()]
     tdm_file.close()
     parsed_dx = []
@@ -98,8 +98,8 @@ with open("DM.out", "r") as tdm_file:
     intens = intens[0]
 
     np.set_printoptions(precision=6)
-    outfile = "TDM2.txt"
-    symmetries = {0: "A1", 1: "B1", 2: "B2", 3: "A2"}
+    outfile = "TDM22.txt" # output to other file
+    symmetries = ["A1", "B1", "B2", "A2"]
     open(outfile, "w").close()
     with open(outfile, "w") as out:
         start_string = "sqr(abs(dif))"

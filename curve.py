@@ -6,27 +6,28 @@ from multiprocessing import Pool
 from scipy.interpolate import CubicSpline, RectBivariateSpline
 import numpy as np
 
+sqang = angtocm**2
+
+
 class Curve:
     def __init__(self, grid, frequency, squared_dipole_moment, name=""):
         """Create a new state object"""
         self.name = name
         self.frequency = frequency
         self.grid = grid
-        cs = CubicSpline(self.grid, self.frequency, bc_type=((2, 0), (1, 0)))
-        self.r = np.arange(2e-8,5e-7,5e-11)
-        self.phi = np.zeros(len(self.r))
-        for i in range(len(self.r)):
-            rho = self.r[i] * np.ones(len(self.r[i:]))
-            self.phi[i] = -2 * simps(cs(self.r[i:], 1)*np.sqrt(+self.r[i:]**2-rho**2), self.r[i:])
+        self.r = np.arange(2,15,0.05)
+        self.coeffs = approx_coeffs(self.grid/angtocm, self.frequency/cmtos1, 0)
         self.squared_dipole_moment = squared_dipole_moment
         self.intensity = einstein_coefficient(self.squared_dipole_moment, self.frequency[-1])
+        self.phi = phase_shift(self.r, self.coeffs[1:], 0)
+        self.u = np.arange(1e4, 6e5, 1e3)
     
     def coefficient_calc(self, T, order=4):
-        sigma_s = np.array([simps(self.r * np.sin(self.phi/v), self.r) for v in np.arange(1e4, 6e5, 1e3)])
-        sigma_b = np.array([simps(self.r * (1 - np.cos(self.phi/v)), self.r) for v in np.arange(1e4, 6e5, 1e3)])
-        weighted_v = np.array([v * maxwell(v, T) for v in np.arange(1e4, 6e5, 1e3)])
-        k_s = simps(sigma_s * weighted_v, np.arange(1e4, 6e5, 1e3))
-        k_b = simps(sigma_b * weighted_v, np.arange(1e4, 6e5, 1e3))
+        sigma_s = np.array([simps(self.r * np.sin(self.phi/v), self.r) for v in self.u]) * sqang
+        sigma_b = np.array([simps(self.r * (1 - np.cos(self.phi/v)), self.r) for v in self.u]) * sqang
+        weighted_v = np.array([v * maxwell(v, T) for v in self.u])
+        k_s = simps(sigma_s * weighted_v, self.u)
+        k_b = simps(sigma_b * weighted_v, self.u)
         return k_b + 1j * k_s
 
 
