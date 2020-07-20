@@ -1,7 +1,9 @@
 import numpy as np
 import re
 
-with open("DM2.out", "r") as tdm_file: # input from other file
+au_to_debye = 1 / 0.393456
+
+with open("DM.out", "r") as tdm_file: # input from other file
     m = [line.strip() for line in tdm_file.readlines()]
     tdm_file.close()
     parsed_dx = []
@@ -90,15 +92,15 @@ with open("DM2.out", "r") as tdm_file: # input from other file
             out.append(np.hstack((t1, t2, t3, t4, t5, t6)))
         dz.append(np.array(out))
 
-    dx = np.array(dx)
-    dy = np.array(dy)
-    dz = np.array(dz)
+    dx = np.array(dx) * au_to_debye
+    dy = np.array(dy) * au_to_debye
+    dz = np.array(dz) * au_to_debye
 
     intens = np.absolute(dx) ** 2 + np.absolute(dy) ** 2 + np.absolute(dz) ** 2
     intens = intens[0]
 
     np.set_printoptions(precision=6)
-    outfile = "TDM22.txt" # output to other file
+    outfile = "TDM2.txt" # output to other file
     symmetries = ["A1", "B1", "B2", "A2"]
     open(outfile, "w").close()
     with open(outfile, "w") as out:

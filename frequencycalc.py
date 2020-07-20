@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from calculationmethods import angtosm
+from calculationmethods import angtocm
 
 
 cmtos1 = 2.998E10 * 2 * np.pi
@@ -34,8 +34,8 @@ def compound_states(statei, statef):
             return statef + "_" + statei
 
 
-with open("TDM22.txt", "r") as intens_file:
-    with open("energy_2.txt", "r") as energy_file:
+with open("TDM2.txt", "r") as intens_file:
+    with open("energy.txt", "r") as energy_file:
         intens_txt = [line.strip().split("\t") for line in intens_file.readlines()]
         energy_txt = [line.strip().split("\t") for line in energy_file.readlines()]
         energies = {energy_txt[0][i]: np.array([float(energy_txt[k][i]) for k in range(1, len(energy_txt))])
@@ -53,7 +53,7 @@ with open("TDM22.txt", "r") as intens_file:
                 energies[k] = np.append(v, limits[find_state_by_substate(states, k)])
         subkeys = [k for k in energies.keys()][1:]
         intens = {s[0]: [float(w) for w in s[1:]] for s in intens_txt[2:]}
-        frequencies = {"R": energies["R"] * angtosm}
+        frequencies = {"R": energies["R"] * angtocm}
         for k in intens.keys():
             for i in range(len(intens[k])):
                 if intens[k][i] != 0:
@@ -77,11 +77,11 @@ with open("TDM22.txt", "r") as intens_file:
                                                                   "Frequency Profile": v["Frequency Profile"]}
 
         try:
-            os.mkdir("results2")
+            os.mkdir("results")
         except OSError:
             pass
         finally:
-            os.chdir("results2")
+            os.chdir("results")
 
         for k, v in frequencies_by_states.items():
             if k != "R":
