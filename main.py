@@ -54,7 +54,6 @@ class Ui_MainWindow(object):
         self.pushButton_2.setText(_translate("MainWindow", "Recalc"))
 
 
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    win = Ui_MainWindow()
-    sys.exit(app.exec_())
+app = QtWidgets.QApplication([])
+win = Ui_MainWindow()
+sys.exit(app.exec_())

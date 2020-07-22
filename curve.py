@@ -1,9 +1,5 @@
 from calculationmethods import *
-from scipy.integrate import nquad, romberg, quad, simps
-from scipy.special import gamma
-from numba import jit, njit
-from multiprocessing import Pool
-from scipy.interpolate import CubicSpline, RectBivariateSpline
+from scipy.integrate import simps
 import numpy as np
 
 sqang = angtocm**2
