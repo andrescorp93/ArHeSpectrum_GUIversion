@@ -1,119 +1,94 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from calculationmethods import *
 from scipy.interpolate import CubicSpline
+from scipy.optimize import curve_fit
 from scipy.integrate import simps
-from scipy.special import gamma
+from scipy.special import gamma, kn
 
+mu = 3.63  # reduced mass for Ar-He
+R = 8.31E7  # gas constant
 cmtos1 = 2.998E10 * 2 * np.pi
 angtocm = 1E-8
 
 
+def u(r, u0, A, alpha, C6, C8):
+    uex = A * np.exp(-alpha*r)
+    u6 = C6 * np.power(r, -6)
+    u8 = C8 * np.power(r, -8)
+    return u0 + uex + u6 + u8
+
+
+def approx_coeffs(r, ut):
+    popt, pcov = curve_fit(u, r, ut, p0=[ut[-1], -5.6e4, 1.2, 1.9e6, -1.5e7])
+    res = {'u0': popt[0], 'A': popt[1], 'alpha': popt[2],
+           'C6': popt[3], 'C8': popt[4]}
+    return res
+
+
+def plot_approximation(coeffs):
+    r = np.arange(2,10,0.01)
+    uapp = u(r, coeffs["u0"], coeffs["A"], coeffs["alpha"], coeffs["C6"], coeffs["C8"])
+    plt.plot(r,uapp)
+
+    
+def buckingham_phase(r, v, A, alpha):
+    A *= cmtos1
+    return 2*A*r*kn(1, r)*angtocm / v
+
+
 def power_integral(r, n):
-    c = np.sqrt(np.pi)*gamma((n-1)/2)/gamma(n/2)
-    return np.power(r, 1-n)*c
+    k = np.sqrt(np.pi)*gamma((n-1)/2)/gamma(n/2)
+    return np.power(r, 1-n)*k
 
 
-def approx_coeffs(x, y, k=4, m=10):
-    if k == 0:
-        order = [0, 6, 8, 12]
-    else:
-        order = [k*i for i in range(m)]
-    x_vec = [x ** (-order[i]) for i in range(len(order))]
-    m = np.array([[np.dot(x_vec[i], x_vec[j]) for j in range(len(order))] for i in range(len(order))])
-    b = np.array([np.dot(y, x_vec[i]) for i in range(len(order))])
-    return np.linalg.solve(m, b)
+def van_der_waals_phase(r, v, C6, C8):
+    C6 *= cmtos1
+    C8 *= cmtos1
+    phi6 = power_integral(r, 6) * C6
+    phi8 = power_integral(r, 8) * C8
+    return (phi6+phi8)*angtocm / v
 
 
-def potential(r, c, k=4, m=10):
-    if k == 0:
-        order = [0, 6, 8, 12]
-    else:
-        order = [k*i for i in range(m)]
-    x = [r ** (-order[i]) for i in range(len(c))]
-    return np.dot(c, x)
+def phase_shift(r, v, up):
+    buckinghampart = buckingham_phase(r, v, up["A"], up["alpha"])
+    vanderwaalspart = van_der_waals_phase(r, v, up["C6"], up["C8"])
+    return buckinghampart + vanderwaalspart
 
 
-def eta_by_coeffs(r, c, n=4, m=10):
-    if n == 0:
-        order = [0, 6, 8, 12]
-    else:
-        order = [n*i for i in range(1, m)]
-    eta = np.zeros(len(r))
-    for k in range(len(c)):
-        eta += power_integral(r, order[k]) * c[k]
-    return eta * angtocm * cmtos1
+def maxwell(v, T):
+    """
+    Maxwell distribution
+    v - velocity, cm/s
+    T - temperature, K
+    norm - coefficient of normalization
+    """
+    norm = ((mu / (2 * np.pi * R * T)) ** 1.5)
+    return 4 * np.pi * (v ** 2) * norm * np.exp(-mu * v ** 2 / (2 * R * T))
 
 
-def eta_by_spline(r, spline):
-    eta = np.zeros(len(r))
-    for k in range(len(r)-1):
-        eta[k] = -2 * simps(spline(r[k:], 1)*np.sqrt(r[k:]**2-r[k]**2), r[k:])
-    return eta * angtocm * cmtos1
-
-
-def sin_series(x, n):
-    summ = x
-    q = x
-    for i in range(1, n):
-        q *= -np.power(x, 2)/(2*i * (2*i+1))
-        summ += q
-    return summ
-
-
-
-def cos_series(x, n):
-    summ = np.power(x, 2) / 2
-    q = np.power(x, 2) / 2
-    for i in range(1, n):
-        q *= -np.power(x, 2)/((2*i+2)*(2*i+1))
-        summ += q
-    return summ
+def calc_coeffs(T, coeffs):
+    r = np.arange(1.8, 20, 0.002)
+    v = np.arange(1e3, 7e5, 5e2)
+    sigmab = np.zeros(len(v))
+    sigmas = np.zeros(len(v))
+    phaseshift = phase_shift(r, 1000, coeffs) * 1000
+    for i in range(len(v)):
+        sigmab[i] = simps(r*(1-np.cos(phaseshift/v[i])), r) * angtocm**2
+        sigmas[i] = simps(r*(np.sin(phaseshift/v[i])), r) * angtocm**2
+    kb = simps(sigmab*v*maxwell(v, T), v)
+    ks = simps(sigmas*v*maxwell(v, T), v)
+    return kb, ks
 
 
 with open("results/1s5_2p9.txt", "r") as energy_file:
     energy_txt = [line.strip().split("\t") for line in energy_file.readlines()]
     energies = {energy_txt[0][i]: np.array([float(energy_txt[k][i]) for k in range(2, len(energy_txt))])
                 for i in range(len(energy_txt[0]))}
-    velocities = {}
-    with open("velocities.txt", "r") as velocity_file:
-        velocity_txt = [line.strip().split("\t") for line in velocity_file.readlines()]
-        velocities = {velocity_txt[0][i]: np.array([float(velocity_txt[k][i]) for k in range(2, len(velocity_txt))])
-                for i in range(len(velocity_txt[0]))}
-    v_r = {velocities["1s5"][k]: velocities["R"][k] for k in range(len(velocities["R"]))}
-    for k in energies.keys():
-        if k == "R":
-            energies["R"] = energies[k][:-1] / angtocm
-        else:
-            energies[k] = energies[k][:-1] / cmtos1
-            coefficients1 = approx_coeffs(energies["R"], energies[k], 6, 4)
-            coefficients2 = approx_coeffs(energies["R"], energies[k], 0)
-            cs = CubicSpline(energies["R"], energies[k], bc_type=((2, 0), (1, 0)))
-            v = np.arange(1e4, 6e5, 1e3)
-            x = np.arange(2, 9, 0.05)
-            u1 = [potential(r, coefficients2, 0) for r in x]
-            u2 = [potential(r, coefficients1, 6, 4) for r in x]
-            plt.plot(energies["R"], energies[k], "ro")
-            plt.plot(x, u1, label="6-8-12 form")
-            plt.plot(x, u2, label="6k form")
-            plt.legend()
+    for k, v in energies.items():
+        if k != "R":
+            res = approx_coeffs(energies["R"], v)
+            print(res)
+            plot_approximation(res)
+            plt.plot(energies["R"], v)
             plt.show()
-            plt.plot(x, eta_by_coeffs(x, coefficients2[1:], 0), label="6-8-12 form")
-            plt.plot(x, eta_by_coeffs(x, coefficients1[1:], 6, 4), label="6k form")
-            plt.legend()
-            plt.show()
-            sigma_s = [simps(x * np.sin(eta_by_coeffs(x, coefficients2[1:], 0)/u), x) * angtocm**2 for u in v]
-            plt.plot(v, v * sigma_s * maxwell(v, 300), label="6-8-12 form")
-            sigma_s = [simps(x * np.sin(eta_by_coeffs(x, coefficients1[1:], 6, 4)/u), x) * angtocm**2 for u in v]
-            plt.plot(v, v * sigma_s * maxwell(v, 300), label="6k form")
-            plt.legend()
-            plt.show()
-            sigma_b = [simps(x * (1-np.cos(eta_by_coeffs(x, coefficients2[1:], 0)/u)), x) * angtocm**2 for u in v]
-            print(sigma_b)
-            plt.plot(v, v * sigma_b * maxwell(v, 300), label="6-8-12 form")
-            sigma_b = [simps(x * (1-np.cos(eta_by_coeffs(x, coefficients1[1:], 6, 4)/u)), x) * angtocm**2 for u in v]
-            plt.plot(v, v * sigma_b * maxwell(v, 300), label="6k form")
-            plt.legend()
-            plt.show()
-            
-            
+            print(calc_coeffs(300, res))

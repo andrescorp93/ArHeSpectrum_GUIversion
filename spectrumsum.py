@@ -20,6 +20,12 @@ with open("results/coefficients/1s5_2p9.txt") as text_file:
                 t = Spectrum(names[i], intensities[i], temperatures[j], n, broads[j, i], shifts[j, i])
                 t.calculate_spectrum()
                 spec += t
-        plt.plot(spec.nu, spec.spectrum)
+        print(spec.nu[np.argmax(spec.spectrum)])
+        peakpart = []
+        for i in range(len(spec.nu)):
+            if spec.spectrum[i] > np.max(spec.spectrum)/2:
+                peakpart.append(spec.nu[i])
+        peakpart = np.array(peakpart)
+        newwidth = np.max(peakpart) - np.min(peakpart)
+        print(newwidth)
         print(spec.intensity)
-    plt.show()

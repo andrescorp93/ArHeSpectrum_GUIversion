@@ -1,9 +1,7 @@
 import numpy as np
 import os
-from calculationmethods import angtocm
 
 
-cmtos1 = 2.998E10 * 2 * np.pi
 states = {"1s5": ["1A1", "1A2", "1B1", "1B2", "2A2"], "1s4": ["2A1", "2B1", "2B2"],
           "1s3": ["3A2"], "1s2": ["3A1", "3B2", "3B1"], "2p10": ["4B2", "4B1", "4A2"],
           "2p9": ["5A2", "4A1", "5B2", "5B1", "6B2", "6B1", "6A2"],
@@ -35,25 +33,25 @@ def compound_states(statei, statef):
 
 
 with open("TDM2.txt", "r") as intens_file:
-    with open("energy.txt", "r") as energy_file:
+    with open("energy_2.txt", "r") as energy_file:
         intens_txt = [line.strip().split("\t") for line in intens_file.readlines()]
         energy_txt = [line.strip().split("\t") for line in energy_file.readlines()]
         energies = {energy_txt[0][i]: np.array([float(energy_txt[k][i]) for k in range(1, len(energy_txt))])
                     for i in range(len(energy_txt[0]))}
         limits = {}
-        for k, v in states.items():
-            l = 0
-            for s in v:
-                l += energies[s][-1]
-            limits[k] = l / len(v)
-        for k, v in energies.items():
-            if k == "R":
-                energies[k] = np.append(v, [100])
-            else:
-                energies[k] = np.append(v, limits[find_state_by_substate(states, k)])
+        # for k, v in states.items():
+        #     l = 0
+        #     for s in v:
+        #         l += energies[s][-1]
+        #     limits[k] = l / len(v)
+        # for k, v in energies.items():
+        #     if k == "R":
+        #         energies[k] = np.append(v, [100])
+        #     else:
+        #         energies[k] = np.append(v, limits[find_state_by_substate(states, k)])
         subkeys = [k for k in energies.keys()][1:]
         intens = {s[0]: [float(w) for w in s[1:]] for s in intens_txt[2:]}
-        frequencies = {"R": energies["R"] * angtocm}
+        frequencies = {"R": energies["R"]}
         for k in intens.keys():
             for i in range(len(intens[k])):
                 if intens[k][i] != 0:
@@ -62,7 +60,7 @@ with open("TDM2.txt", "r") as intens_file:
                         bs = compound_states(find_state_by_substate(states, k),
                                              find_state_by_substate(states, subkeys[i]))
                         frequencies[nk] = {"Intensity": intens[k][i],
-                                           "Frequency Profile": np.abs(energies[k] - energies[subkeys[i]]) * cmtos1,
+                                           "Frequency Profile": np.abs(energies[k] - energies[subkeys[i]]),
                                            "Base States": bs}
 
         frequencies_by_states = {"R": frequencies["R"]}
