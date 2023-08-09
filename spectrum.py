@@ -17,12 +17,24 @@ class Spectrum:
         self.kshift = kshift
         self.spectrum = spec
         self.nu = np.arange(-1e10, 1.1e10, 1e7)
-        
 
     def calculate_spectrum(self):
         delta = self.kshift * self.n
         width = self.kbroad * self.n
         self.spectrum = np.array([lorentz(f, self.intensity, delta, width) for f in self.nu])
+        
+    def fit_spectrum(self):
+        ws = self.nu[np.argmax(self.spectrum)]
+        m = np.max(self.spectrum)
+        peakpart = []
+        for i in range(len(self.nu)):
+            if self.spectrum[i] > np.max(self.spectrum)/2:
+                peakpart.append(self.nu[i])
+        peakpart = np.array(peakpart)
+        ds = (np.max(peakpart) - np.min(peakpart))
+        a = np.pi * ds * m / 2
+        popt, pcov = curve_fit(lorentz, self.nu, self.spectrum, p0=[a, ws, ds, 0])
+        return popt[1], popt[2]
 
     def __add__(self, other):
         conditionstest = (self.n==other.n) and (self.temperature==other.temperature)

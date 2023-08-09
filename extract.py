@@ -39,4 +39,4 @@ def extract(infile, outfile):
                 out.write(s)
 
 
-extract("energies.out", "energy.txt")
+extract("energies_4.out", "energy_6.txt")

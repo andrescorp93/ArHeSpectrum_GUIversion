@@ -11,16 +11,14 @@ class Curve:
         self.name = name
         self.frequency = frequency
         self.grid = grid
-        self.r = np.arange(2,15,0.05)
-        self.coeffs = approx_coeffs(self.grid/angtocm, self.frequency/cmtos1, 0)
         self.squared_dipole_moment = squared_dipole_moment
         self.intensity = einstein_coefficient(self.squared_dipole_moment, self.frequency[-1])
-        self.phi = phase_shift(self.r, self.coeffs[1:], 0)
+        self.phi = phase_shift_table(self.grid, self.frequency)
         self.u = np.arange(1e4, 6e5, 1e3)
     
     def coefficient_calc(self, T, order=4):
-        sigma_s = np.array([simps(self.r * np.sin(self.phi/v), self.r) for v in self.u]) * sqang
-        sigma_b = np.array([simps(self.r * (1 - np.cos(self.phi/v)), self.r) for v in self.u]) * sqang
+        sigma_s = np.array([simps(self.grid * np.sin(self.phi/v), self.grid) for v in self.u]) * sqang
+        sigma_b = np.array([simps(self.grid * (1 - np.cos(self.phi/v)), self.grid) for v in self.u]) * sqang
         weighted_v = np.array([v * maxwell(v, T) for v in self.u])
         k_s = simps(sigma_s * weighted_v, self.u)
         k_b = simps(sigma_b * weighted_v, self.u)
