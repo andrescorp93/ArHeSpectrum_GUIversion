@@ -12,16 +12,17 @@ states = {"1s5": ["1A1", "1A2", "1B1", "1B2", "2A2"], "1s4": ["2A1", "2B1", "2B2
           "2p2": ["12A2", "12B2", "12B1"], "2p1": ["12A1"]}
 
 for filename in os.listdir("results"):
-    text_file = open("results/" + filename, "r")
-    lines = [l.strip().split("\t") for l in text_file.readlines()]
-    names = lines[0]
-    curves = []
-    r = np.array([float(lines[i][0]) for i in range(2, len(lines))])
-    for i in range(len(lines[0]) - 1):
-        omega = np.array([float(lines[j][i + 1]) for j in range(2, len(lines))])
-        curves.append(Curve(r, omega, float(lines[1][i + 1]) * 1e-36, names[i]))
-    g = len(states[filename[:-4].split("_")[1]])
-    einstein_total = sum([curve.intensity for curve in curves])
-    l = cmtos1 * 1e8 * len(curves) / sum([curve.frequency[-1] for curve in curves])
-    print(f"Transition: {filename[:-4]} A_ki: {einstein_total/g} lambda: {l}")
+    if not os.path.isdir(os.path.join(os.path.abspath("results"),filename)):
+        text_file = open("results/" + filename, "r")
+        lines = [l.strip().split("\t") for l in text_file.readlines()]
+        names = lines[0]
+        curves = []
+        r = np.array([float(lines[i][0]) for i in range(2, len(lines))])
+        for i in range(len(lines[0]) - 1):
+            omega = np.array([float(lines[j][i + 1]) for j in range(2, len(lines))])
+            curves.append(Curve(r, omega*cmtos1, float(lines[1][i + 1]) * 1e-36, names[i]))
+        g = len(states[filename[:-4].split("_")[1]])
+        einstein_total = sum([curve.intensity for curve in curves])
+        l = cmtos1 * 1e8 * len(curves) / sum([curve.frequency[-1] for curve in curves])
+        print(f"Transition: {filename[:-4]} A_ki: {einstein_total/g} lambda: {l}")
     

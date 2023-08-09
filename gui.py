@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from spectrum import *
+from fileparsers import *
 
 curves = []
 
@@ -120,6 +121,7 @@ def calc_spectrum():
     fig.clear()
     spec_plot = fig.add_subplot()
     spec_plot.plot(spec_data.nu, spec_data.spectrum)
+    # spec_plot.plot(spec_data.nu, spec_data.spectrum)
     canvas.draw()
 
 
@@ -188,11 +190,14 @@ toolbar = NavigationToolbar2Tk(canvas, spec_plot_frame)
 toolbar.update()
 canvas.get_tk_widget().pack()
 
-for text_file in os.listdir("results"):
-    if not os.path.isdir(os.path.join(os.path.abspath("results"),text_file)):
+for text_file in os.listdir('results'):
+    if not os.path.isdir(os.path.join(os.path.abspath('results'),text_file)):
         filebox.insert(END, text_file)
-for text_file in os.listdir("results/coefficients/"):
-    if not os.path.isdir(os.path.join(os.path.abspath("results/coefficients/"),text_file)):
-        specfilebox.insert(END, text_file)
+try:
+    for text_file in os.listdir("results/coefficients/"):
+        if not os.path.isdir(os.path.join(os.path.abspath("results/coefficients/"),text_file)):
+            specfilebox.insert(END, text_file)
+except OSError:
+    pass
 
 root.mainloop()
