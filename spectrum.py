@@ -34,7 +34,7 @@ class Spectrum:
         ds = (np.max(peakpart) - np.min(peakpart))
         a = np.pi * ds * m / 2
         popt, pcov = curve_fit(lorentz, self.nu, self.spectrum, p0=[a, ws, ds, 0])
-        return popt[1], popt[2]
+        return popt
 
     def __add__(self, other):
         conditionstest = (self.n==other.n) and (self.temperature==other.temperature)

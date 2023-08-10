@@ -9,10 +9,10 @@ class Curve:
     def __init__(self, grid, frequency, squared_dipole_moment, name=""):
         """Create a new state object"""
         self.name = name
-        self.frequency = frequency
-        self.grid = grid
+        self.frequency = np.array(frequency)
+        self.grid = np.array(grid)
         self.squared_dipole_moment = squared_dipole_moment
-        self.intensity = einstein_coefficient(self.squared_dipole_moment, self.frequency[-1])
+        self.intensity = einstein_coefficient(self.squared_dipole_moment, self.frequency[-1]*cmtos1)
         self.phi = phase_shift_table(self.grid, self.frequency)
         self.u = np.arange(1e4, 6e5, 1e3)
     

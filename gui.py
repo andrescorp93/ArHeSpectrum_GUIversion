@@ -36,6 +36,8 @@ def load_file():
         curves.append(Curve(r, omega, float(lines[1][i + 1]) * 1e-36, names[i + 1]))
     for curve in curves:
         statebox.insert(END, curve.name)
+    g = len(states[filebox.get(filebox.curselection())[:-4].split("_")[1]])
+    text.insert(END, f'Einstein coefficient A_ki: {sum([curve.intensity for curve in curves])/g:.5e}\n')
 
 
 def calc_file():
@@ -48,14 +50,13 @@ def calc_file():
     text_file_out.write("States\t" +"\t".join([curve.name for curve in curves]) + "\n")
     text_file_out.write("Frequency\t" +"\t".join([str(curve.frequency[-1]) for curve in curves]) + "\n")
     text_file_out.write("Intensity\t" +"\t".join([str(curve.intensity) for curve in curves]) + "\n")
-    text.delete(1.0, END)
     for t in np.arange(300, 1050, 50):
         r = [curve.coefficient_calc(t) for curve in curves]
         text.insert(END, f'T={t} done!\n')
         text_file_out.write(str(t) + " Broad\t" +"\t".join([str(np.real(k)) for k in r]) + "\n")
         text_file_out.write(str(t) + " Shift\t" +"\t".join([str(np.imag(k)) for k in r]) + "\n")
     text_file_out.close()
-    omega = [c.frequency[-2] for c in curves]
+    omega = [c.frequency[-1]*cmtos1 for c in curves]
     a = [c.intensity for c in curves]
     fig.clear()
     spec_plot = fig.add_subplot()
@@ -116,14 +117,62 @@ def calc_spectrum():
         tmp = Spectrum(names[i], intensities[i], t, n, b[i], s[i])
         tmp.calculate_spectrum()
         spec_data += tmp
-    wfitted, bfitted = spec_data.fit_spectrum()
+    fitresult = spec_data.fit_spectrum()
+    A = fitresult[0]
+    wfitted = fitresult[1]
+    bfitted = fitresult[2]
+    h = fitresult[3]
     text.insert(END, f'T = {t} K; n = {n} cm-3; dw = {wfitted:.5e} Hz; broad = {bfitted:.5e} Hz\n')
     fig.clear()
     spec_plot = fig.add_subplot()
     spec_plot.plot(spec_data.nu, spec_data.spectrum)
-    # spec_plot.plot(spec_data.nu, spec_data.spectrum)
+    spec_plot.plot(spec_data.nu, lorentz(spec_data.nu, A, wfitted, bfitted, h))
     canvas.draw()
 
+def calc_total_coeffs():
+    try:
+        os.mkdir("results/totals/")
+    except OSError:
+        pass
+    text_file_out = open("results/totals/" + specfilebox.get(specfilebox.curselection()), "w")
+    text_file = open("results/coefficients/" + specfilebox.get(specfilebox.curselection()), "r")
+    lines = [l.strip().split("\t") for l in text_file.readlines()]
+    names = lines[0][1:]
+    intensities = np.array([float(n) for n in lines[2][1:]])
+    temperatures = np.array([float(l[0][:-6]) for l in lines[3::2]])
+    broads = np.array([[float(s) for s in l[1:]] for l in lines[3::2]])
+    shifts = np.array([[float(s) for s in l[1:]] for l in lines[4::2]])
+    ns = np.arange(1e18, 4e18, 5e17)
+    fig.clear()
+    broad_plot = fig.add_subplot(121)
+    shift_plot = fig.add_subplot(122)
+    total_broads = np.zeros(len(temperatures))
+    total_shifts = np.zeros(len(temperatures))
+    text.insert(END, 'T, K\t broad, cm3/s\t shift, cm3/s\n')
+    text_file_out.write('T, K\t broad, cm3/s\t shift, cm3/s\n')
+    for i in range(len(temperatures)):
+        t = temperatures[i]
+        wfitted = np.zeros(len(ns))
+        bfitted = np.zeros(len(ns))
+        for j in range(len(ns)):
+            n = ns[j]
+            spec_data = Spectrum(names[0], intensities[0], t, n, broads[i, 0], shifts[i, 0])
+            spec_data.calculate_spectrum()
+            for k in range(1, len(names)):
+                tmp = Spectrum(names[k], intensities[k], t, n, broads[i, k], shifts[i, k])
+                tmp.calculate_spectrum()
+                spec_data += tmp
+            fitresult = spec_data.fit_spectrum()
+            wfitted[j] = fitresult[1]
+            bfitted[j] = fitresult[2]
+        total_broads[i] = np.polyfit(ns, bfitted, 1)[0]
+        total_shifts[i] = np.polyfit(ns, wfitted, 1)[0]
+        text.insert(END, f'{t}\t{total_broads[i]:.5e}\t{total_shifts[i]:.5e}\n')
+        text_file_out.write(f'{t}\t{total_broads[i]:.5e}\t{total_shifts[i]:.5e}\n')
+        broad_plot.plot(ns, bfitted)
+        shift_plot.plot(ns, wfitted)
+    text_file_out.close()
+    canvas.draw()
 
 root = Tk()
 file_frame = Frame(root)
@@ -180,8 +229,6 @@ conc_field = Entry(spec_param_frame)
 conc_field.grid(row=3, column=1)
 spec_plot_frame = Frame(spec_param_frame)
 spec_plot_frame.grid(row=4, column=1)
-calc_coeffs_button = Button(spec_param_frame, text="Calculate spectrum", command=calc_spectrum)
-calc_coeffs_button.grid(row=5, column=1)
 fig = Figure()
 canvas = FigureCanvasTkAgg(fig, master=spec_plot_frame)
 canvas.draw()
@@ -189,11 +236,18 @@ canvas.get_tk_widget().pack()
 toolbar = NavigationToolbar2Tk(canvas, spec_plot_frame)
 toolbar.update()
 canvas.get_tk_widget().pack()
+calc_spec_frame = Frame(spec_param_frame)
+calc_spec_frame.grid(row=5, column=1)
+calc_spec_button = Button(calc_spec_frame, text="Calculate spectrum", command=calc_spectrum)
+calc_spec_button.grid(row=0, column=1)
+calc_total_coeffs_button = Button(calc_spec_frame, text="Calculate total coeffs", command=calc_total_coeffs)
+calc_total_coeffs_button.grid(row=0, column=2)
 
-for text_file in os.listdir('results'):
-    if not os.path.isdir(os.path.join(os.path.abspath('results'),text_file)):
-        filebox.insert(END, text_file)
+fullprepare()
 try:
+    for text_file in os.listdir('results'):
+        if not os.path.isdir(os.path.join(os.path.abspath('results'),text_file)):
+            filebox.insert(END, text_file)
     for text_file in os.listdir("results/coefficients/"):
         if not os.path.isdir(os.path.join(os.path.abspath("results/coefficients/"),text_file)):
             specfilebox.insert(END, text_file)

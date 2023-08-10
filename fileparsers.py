@@ -193,12 +193,12 @@ def generate_freq_intense_profile(dmfilename, energyfilename, outdirname):
         for k in intens.keys():
             for i in range(len(intens[k])):
                 if intens[k][i] != 0:
-                    if find_state_by_substate(states, k) != find_state_by_substate(states, subkeys[i]):
+                    if find_state_by_substate(states, k) != find_state_by_substate(states, subkeys[i]) and find_state_by_substate(states, k)[1] != find_state_by_substate(states, subkeys[i])[1]:
                         nk = k + "_" + subkeys[i]
                         bs = compound_states(find_state_by_substate(states, k),
                                              find_state_by_substate(states, subkeys[i]))
                         frequencies[nk] = {"Intensity": intens[k][i],
-                                           "Frequency Profile": np.abs(energies[k] - energies[subkeys[i]])*cmtos1,
+                                           "Frequency Profile": np.abs(energies[k] - energies[subkeys[i]]),
                                            "Base States": bs}
         frequencies_by_states = {"R": frequencies["R"]}
         for k, v in frequencies.items():
@@ -237,9 +237,11 @@ def generate_freq_intense_profile(dmfilename, energyfilename, outdirname):
                                 result += "\t" + str(sv["Frequency Profile"][i])
                         res_file.write(result + "\n")
                     res_file.close()
+        os.chdir('..')
 
 
 def fullprepare(energyout="energies.out", dmout="DM.out", entxt="energy.txt", dm2txt="TDM2.txt", outdirname="results"):
     extract_energy(energyout, entxt)
     extract_dm(dmout, dm2txt)
     generate_freq_intense_profile(dm2txt, entxt, outdirname)
+    
